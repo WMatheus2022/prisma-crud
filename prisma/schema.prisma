@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String    @id @default(cuid())
+  fname    String
+  lname    String
+  car      Car?
+  carBlogs Carblog[]
+  friendId String?   @unique
+  friend   User?     @relation("Friend", fields: [friendId], references: [id])
+  friendOf User?     @relation("Friend")
+}
+
+model Car {
+  id     String  @id @default(cuid())
+  color  String
+  bought Boolean @default(false)
+  name   String
+  userId String  @unique
+  user   User    @relation(fields: [userId], references: [id])
+}
+
+model Carblog {
+  id         String             @id @default(cuid())
+  content    String
+  createdAt  DateTime           @default(now())
+  userId     String
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categories CategoryCarBlogs[]
+
+  CategoriesOnCarBlogs CategoriesOnCarBlogs[]
+}
+
+model CategoryCarBlogs {
+  id        String                 @id @default(cuid())
+  name      String
+  carBlogs  CategoriesOnCarBlogs[]
+  Carblog   Carblog?               @relation(fields: [carblogId], references: [id])
+  carblogId String?
+}
+
+model CategoriesOnCarBlogs {
+  carBlog     Carblog          @relation(fields: [carBlogId], references: [id])
+  carBlogId   String
+  category    CategoryCarBlogs @relation(fields: [carBlogId], references: [id])
+  categoryId  String
+  assignedAt  DateTime         @default(now())
+  asssignedBy String
+
+  @@id([carBlogId, categoryId])
+}
